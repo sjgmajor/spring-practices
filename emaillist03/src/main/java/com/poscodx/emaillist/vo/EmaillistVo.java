@@ -33,6 +33,5 @@ public class EmaillistVo {
 	public String toString() {
 		return "EmaillistVo [no=" + no + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
 				+ "]";
-	}
-	
+	}	
 }

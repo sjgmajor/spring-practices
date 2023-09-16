@@ -1,4 +1,4 @@
-package com.poscodx.emaillist.repository;
+package com.poscodx.guestbook.repository;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,57 +10,74 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.poscodx.emaillist.vo.EmaillistVo;
+import com.poscodx.guestbook.vo.GuestbookVo;
 
 @Repository
-public class EmaillistRepository {
-	
-	public List<EmaillistVo> findAll() {
-		List<EmaillistVo> result = new ArrayList<>();
+public class GuestbookRepository {
+	public Boolean deleteByNoAndPassword(Long no, String password) {
+		boolean result = false;
 		
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		ResultSet rs = null;
 		
 		try {
 			conn = getConnection();
-
-			//3. SQL 준비
-			String sql = "select no, first_name, last_name, email from emaillist order by no desc";
+			
+			String sql = "delete from guestbook where no = ? and password = ?";
 			pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, no);
+			pstmt.setString(2, password);
 			
-			//4. binding
+			int count = pstmt.executeUpdate();
 			
-			//5. SQL 실행
-			rs = pstmt.executeQuery();
-			
-			//6. 결과 처리
-			while(rs.next()) {
-				Long no = rs.getLong(1);
-				String firstName = rs.getString(2);
-				String lastName = rs.getString(3);
-				String email = rs.getString(4);
-				
-				EmaillistVo vo = new EmaillistVo();
-				vo.setNo(no);
-				vo.setFirstName(firstName);
-				vo.setLastName(lastName);
-				vo.setEmail(email);
-				
-				result.add(vo);
-			}
-			
+			result = count == 1;
 		} catch (SQLException e) {
-			System.out.println("error:" + e);
+			System.out.println("Error:" + e);
 		} finally {
 			try {
-				// 7. 자원정리
-				if(rs != null) {
-					rs.close();
-				}
 				if(pstmt != null) {
 					pstmt.close();
 				}
+				
+				if(conn != null) {
+					conn.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return result;		
+	}
+	
+	public Boolean insert(GuestbookVo vo) {
+		boolean result = false;
+		
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		
+		try {
+			conn = getConnection();
+			
+			String sql = "insert into guestbook values(null, ?, ?, ?, now())";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, vo.getName());
+			pstmt.setString(2, vo.getPassword());
+			pstmt.setString(3, vo.getContents());
+			
+			int count = pstmt.executeUpdate();
+			
+			//5. 결과 처리
+			result = count == 1;
+			
+		} catch (SQLException e) {
+			System.out.println("Error:" + e);
+		} finally {
+			try {
+				if(pstmt != null) {
+					pstmt.close();
+				}
+				
 				if(conn != null) {
 					conn.close();
 				}
@@ -71,57 +88,51 @@ public class EmaillistRepository {
 		
 		return result;
 	}
-
-	public void insert(EmaillistVo vo) {
+	
+	public List<GuestbookVo> findAll() {
+		List<GuestbookVo> result = new ArrayList<>();
+	
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		
 		try {
 			conn = getConnection();
 			
-			String sql = "insert into emaillist values(null, ?, ?, ?)";
+			String sql =
+				"    select no, name, contents, date_format(reg_date, '%Y/%m/%d %H:%i:%s')" + 
+				"      from guestbook" + 
+				"  order by reg_date desc";
 			pstmt = conn.prepareStatement(sql);
 			
-			pstmt.setString(1, vo.getFirstName());
-			pstmt.setString(2, vo.getLastName());
-			pstmt.setString(3, vo.getEmail());
-			
-			pstmt.executeQuery();
-		} catch (SQLException e) {
-			System.out.println("error:" + e);
-		} finally {
-			try {
-				if(pstmt != null) {
-					pstmt.close();
-				}
-				if(conn != null) {
-					conn.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				Long no = rs.getLong(1);
+				String name = rs.getString(2);
+				String contents = rs.getString(3);
+				String regDate = rs.getString(4);
+				
+				GuestbookVo vo = new GuestbookVo();
+				vo.setNo(no);
+				vo.setName(name);
+				vo.setContents(contents);
+				vo.setRegDate(regDate);
+				
+				result.add(vo);
 			}
-		}
-	}
-
-	public void deleteByEmail(String email) {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		
-		try {
-			conn = getConnection();
 			
-			String sql = "delete from emaillist where email=?";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, email);
-		
-			pstmt.executeQuery();
 		} catch (SQLException e) {
-			System.out.println("error:" + e);
+			System.out.println("Error:" + e);
 		} finally {
 			try {
+				if(rs != null) {
+					rs.close();
+				}
+				
 				if(pstmt != null) {
 					pstmt.close();
 				}
+				
 				if(conn != null) {
 					conn.close();
 				}
@@ -129,13 +140,16 @@ public class EmaillistRepository {
 				e.printStackTrace();
 			}
 		}		
+		
+		return result;
 	}
 	
 	private Connection getConnection() throws SQLException {
 		Connection conn = null;
-		
+
 		try {
 			Class.forName("org.mariadb.jdbc.Driver");
+			
 			String url = "jdbc:mariadb://192.168.0.183:3307/webdb?charset=utf8";
 			conn = DriverManager.getConnection(url, "webdb", "webdb");
 		} catch (ClassNotFoundException e) {
