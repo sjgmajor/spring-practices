@@ -18,7 +18,7 @@
 
 	<context:annotation-config />
 
-	<context:component-scan base-package="com.poscodx.fileupload">
+	<context:component-scan base-package="com.poscodx.fileupload.service">
 		<context:include-filter type="annotation"
 			expression="org.springframework.stereotype.Repository" />
 		<context:include-filter type="annotation"

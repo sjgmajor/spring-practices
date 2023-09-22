@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" enctype="multipart/form-data">
 <title>Insert title here</title>
 </head>
 <body>
@@ -10,11 +10,11 @@
 <form method="post" action="upload" enctype="multipart/form-data">
 
 	<label>email:</label>
-	<input type="text" name="email" value="kickscar@gmail.com">
+	<input type="text" name="e" value="kickscar@gmail.com">
 	<br><br>
 	
 	<label>파일:</label>
-	<input type="file" name="file1">
+	<input type="file" name="f" value="${pageContext.request.contextPath }${url }">
 	<br><br>
 	
 	<!--
